@@ -1,17 +1,17 @@
 #ifndef _CALENDAR_H_
 #define _CALENDAR_H_
 
-static inline __attribute__((always_inline)) int32_t CALENDAR_is_leap_year(uint16_t y) {
+ALWAYS_INLINE int32_t CALENDAR_is_leap_year(uint16_t y) {
 	if(y%4)
-		return 0;
+		return FALSE;
 
 	if(y%100)
-		return -1;
+		return TRUE;
 
 	if(y%400)
-		return 0;
+		return FALSE;
 
-	return -1;
+	return TRUE;
 }
 
 void CALENDAR_datetime_from_timestamp(uint32_t ts, uint16_t *py, uint8_t *pm, uint8_t *pd, uint8_t *phh, uint8_t *pmm, uint8_t *pss);

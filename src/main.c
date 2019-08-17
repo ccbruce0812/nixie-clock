@@ -391,6 +391,13 @@ int32_t on_display(const FSM *pfsm, int32_t input, void *parg) {
         case STATE_SET_D_MODE:
         case STATE_SET_HH_MODE:
         case STATE_SET_MM_MODE: {
+    		if(pcontext->new_m==2) {
+    			if(!CALENDAR_is_leap_year(pcontext->new_y)) {
+    				if(pcontext->new_d==29)
+    					pcontext->new_d=28;
+        		}
+        	}
+
             uint32_t ts=CALENDAR_timestamp_from_datetime(pcontext->new_y,
                                                          pcontext->new_m,
                                                          pcontext->new_d,
@@ -557,7 +564,13 @@ int main(int argc, char* argv[]) {
 				int32_t i;
 
 				for(i=0;i<count;i++) {
-					if(data[i]==0x7 || data[i]==0x8 || data[i]==0x9 || data[i]==0x1b) {
+					if(data[i]==INPUT_MUTE ||
+					   data[i]==INPUT_NEXT ||
+					   data[i]==INPUT_PREVIOUS ||
+					   data[i]==INPUT_INCREASE ||
+					   data[i]==INPUT_DECREASE ||
+					   data[i]==INPUT_DISPLAY ||
+					   data[i]==INPUT_SET) {
 						FSM_run(&fsm, data[i], NULL);
 						break;
 					}
