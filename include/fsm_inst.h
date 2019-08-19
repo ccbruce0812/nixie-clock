@@ -24,10 +24,11 @@ enum {
 	INPUT_INCREASE=			0x15,
 	INPUT_DECREASE=			0x07,
     INPUT_DISPLAY=			0x45,
-	INPUT_SET=				0x47
+	INPUT_SET=				0x47,
+	INPUT_SAVER=			0x46
 };
 
-extern const FSM_STATE_ITEM state_table[13];
+extern const FSM_STATE_ITEM g_state_table[13];
 
 int32_t on_initialize(const FSM *pfsm, int32_t input, void *parg);
 int32_t on_mute(const FSM *pfsm, int32_t input, void *parg);

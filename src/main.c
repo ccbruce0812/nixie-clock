@@ -6,6 +6,7 @@
 #define NIXIE_BL_UPDATING_PERIOD			(50)
 #define NIXIE_BL_INDICATOR_TOGGLING_PERIOD	(500)
 #define IR_CHECKING_PERIOD					(1)
+#define NIXIE_SVR_RUNNING_PERIOD			(60*60*1000)
 
 typedef struct {
 	/*
@@ -14,9 +15,10 @@ typedef struct {
 	 * 2: NIXIE_BL_UPDATING_PERIOD
 	 * 3: NIXIE_BL_INDICATOR_TOGGLING_PERIOD
 	 * 4: IR_CHECKING_PERIOD
+	 * 5: NIXIE_SVR_RUNNING PERIOD
 	 */
-	uint32_t last_ts[5];
-	uint32_t period[5];
+	uint32_t last_ts[6];
+	uint32_t period[6];
 
 	uint16_t new_y;
 	uint8_t new_m;
@@ -25,6 +27,48 @@ typedef struct {
 	uint8_t new_mm;
 	uint8_t new_ss;
 } CONTEXT;
+
+static const NIXIE_BL_PIXEL g_y_toggle[2][NIXIE_BL_COUNT]={
+    {
+        {.prefix=1, .red=0, .green=0, .blue=0},
+        {.prefix=1, .red=0, .green=0, .blue=0},
+        {.prefix=1, .red=0, .green=0, .blue=0},
+        {.prefix=1, .red=0, .green=0, .blue=0}
+    }, {
+        {.prefix=1, .red=31, .green=31, .blue=31},
+        {.prefix=1, .red=31, .green=31, .blue=31},
+        {.prefix=1, .red=31, .green=31, .blue=31},
+        {.prefix=1, .red=31, .green=31, .blue=31}
+    }
+};
+
+static const NIXIE_BL_PIXEL g_md_toggle[2][NIXIE_BL_COUNT]={
+    {
+        {.prefix=1, .red=0, .green=0, .blue=0},
+        {.prefix=1, .red=0, .green=0, .blue=0},
+        {.prefix=1, .red=0, .green=0, .blue=0},
+        {.prefix=1, .red=0, .green=0, .blue=0}
+    }, {
+        {.prefix=1, .red=31, .green=31, .blue=0},
+        {.prefix=1, .red=31, .green=31, .blue=0},
+        {.prefix=1, .red=0, .green=31, .blue=31},
+        {.prefix=1, .red=0, .green=31, .blue=31}
+    }
+};
+
+static const NIXIE_BL_PIXEL g_hhmm_toggle[2][NIXIE_BL_COUNT]={
+    {
+        {.prefix=1, .red=0, .green=0, .blue=0},
+        {.prefix=1, .red=0, .green=0, .blue=0},
+        {.prefix=1, .red=0, .green=0, .blue=0},
+        {.prefix=1, .red=0, .green=0, .blue=0}
+    }, {
+        {.prefix=1, .red=31, .green=0, .blue=31},
+        {.prefix=1, .red=31, .green=0, .blue=31},
+        {.prefix=1, .red=0, .green=0, .blue=31},
+        {.prefix=1, .red=0, .green=0, .blue=31}
+    }
+};
 
 static void update(const CONTEXT *pcontext, int32_t mode) {
 	uint16_t y;
@@ -96,21 +140,10 @@ y:
 }
 
 int32_t on_initialize(const FSM *pfsm, int32_t input, void *parg) {
-	ASSERT(pfsm, "Bad arguments.\n");
+	(void)input;
+	(void)parg;
 
-	const NIXIE_BL_PIXEL indicator_data[2][NIXIE_BL_COUNT]={
-		{
-			{.prefix=1, .red=0, .green=0, .blue=0},
-			{.prefix=1, .red=0, .green=0, .blue=0},
-			{.prefix=1, .red=0, .green=0, .blue=0},
-			{.prefix=1, .red=0, .green=0, .blue=0}
-		}, {
-			{.prefix=1, .red=31, .green=31, .blue=31},
-			{.prefix=1, .red=31, .green=31, .blue=31},
-			{.prefix=1, .red=31, .green=31, .blue=31},
-			{.prefix=1, .red=31, .green=31, .blue=31}
-		}
-	};
+	ASSERT(pfsm, "Bad arguments.\n");
 
 	CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
 
@@ -138,8 +171,8 @@ int32_t on_initialize(const FSM *pfsm, int32_t input, void *parg) {
 	pcontext->period[2]=NIXIE_BL_UPDATING_PERIOD;
 	pcontext->period[3]=NIXIE_BL_INDICATOR_TOGGLING_PERIOD;
 	pcontext->period[4]=IR_CHECKING_PERIOD;
+	pcontext->period[5]=NIXIE_SVR_RUNNING_PERIOD;
 
-	NIXIE_BL_INDICATOR_init(indicator_data);
 	NIXIE_BL_PAT0_init();
 
 	update(pcontext, STATE_HHMM_MODE);
@@ -147,6 +180,9 @@ int32_t on_initialize(const FSM *pfsm, int32_t input, void *parg) {
 }
 
 int32_t on_mute(const FSM *pfsm, int32_t input, void *parg) {
+	(void)input;
+	(void)parg;
+
     ASSERT(pfsm, "Bad argument.\n");
 
     CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
@@ -168,7 +204,10 @@ int32_t on_mute(const FSM *pfsm, int32_t input, void *parg) {
 }
 
 int32_t on_next(const FSM *pfsm, int32_t input, void *parg) {
-    ASSERT(pfsm, "Bad argument.\n");
+	(void)input;
+	(void)parg;
+
+	ASSERT(pfsm, "Bad argument.\n");
 
     CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
     int32_t ret=pfsm->state;
@@ -189,6 +228,9 @@ int32_t on_next(const FSM *pfsm, int32_t input, void *parg) {
 }
 
 int32_t on_previous(const FSM *pfsm, int32_t input, void *parg) {
+	(void)input;
+	(void)parg;
+
     ASSERT(pfsm, "Bad argument.\n");
 
     CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
@@ -210,6 +252,9 @@ int32_t on_previous(const FSM *pfsm, int32_t input, void *parg) {
 }
 
 int32_t on_increase(const FSM *pfsm, int32_t input, void *parg) {
+	(void)input;
+	(void)parg;
+
     ASSERT(pfsm, "Bad argument.\n");
 
     CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
@@ -281,6 +326,9 @@ int32_t on_increase(const FSM *pfsm, int32_t input, void *parg) {
 }
 
 int32_t on_decrease(const FSM *pfsm, int32_t input, void *parg) {
+	(void)input;
+	(void)parg;
+
     ASSERT(pfsm, "Bad argument.\n");
 
     CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
@@ -358,6 +406,9 @@ int32_t on_decrease(const FSM *pfsm, int32_t input, void *parg) {
 }
 
 int32_t on_display(const FSM *pfsm, int32_t input, void *parg) {
+	(void)input;
+	(void)parg;
+
     ASSERT(pfsm, "Bad argument.\n");
 
     CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
@@ -423,6 +474,9 @@ int32_t on_display(const FSM *pfsm, int32_t input, void *parg) {
 }
 
 int32_t on_set(const FSM *pfsm, int32_t input, void *parg) {
+	(void)input;
+	(void)parg;
+
     ASSERT(pfsm, "Bad argument.\n");
 
     CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
@@ -440,6 +494,7 @@ int32_t on_set(const FSM *pfsm, int32_t input, void *parg) {
                                              &pcontext->new_hh,
                                              &pcontext->new_mm,
                                              &pcontext->new_ss);
+            NIXIE_BL_INDICATOR_init(g_y_toggle);
             NIXIE_BL_INDICATOR_enable(0);
             NIXIE_BL_INDICATOR_enable(1);
             NIXIE_BL_INDICATOR_enable(2);
@@ -449,6 +504,7 @@ int32_t on_set(const FSM *pfsm, int32_t input, void *parg) {
             break;
 
         case STATE_SET_Y_MODE:
+        	NIXIE_BL_INDICATOR_init(g_md_toggle);
             NIXIE_BL_INDICATOR_disable(0);
             NIXIE_BL_INDICATOR_disable(1);
             NIXIE_BL_INDICATOR_enable(2);
@@ -458,6 +514,7 @@ int32_t on_set(const FSM *pfsm, int32_t input, void *parg) {
             break;
 
         case STATE_SET_M_MODE:
+        	NIXIE_BL_INDICATOR_init(g_md_toggle);
             NIXIE_BL_INDICATOR_enable(0);
             NIXIE_BL_INDICATOR_enable(1);
             NIXIE_BL_INDICATOR_disable(2);
@@ -467,6 +524,7 @@ int32_t on_set(const FSM *pfsm, int32_t input, void *parg) {
             break;
 
         case STATE_SET_D_MODE:
+        	NIXIE_BL_INDICATOR_init(g_hhmm_toggle);
             NIXIE_BL_INDICATOR_disable(0);
             NIXIE_BL_INDICATOR_disable(1);
             NIXIE_BL_INDICATOR_enable(2);
@@ -476,6 +534,7 @@ int32_t on_set(const FSM *pfsm, int32_t input, void *parg) {
             break;
 
         case STATE_SET_HH_MODE:
+        	NIXIE_BL_INDICATOR_init(g_hhmm_toggle);
             NIXIE_BL_INDICATOR_enable(0);
             NIXIE_BL_INDICATOR_enable(1);
             NIXIE_BL_INDICATOR_disable(2);
@@ -485,6 +544,7 @@ int32_t on_set(const FSM *pfsm, int32_t input, void *parg) {
             break;
 
         case STATE_SET_MM_MODE:
+        	NIXIE_BL_INDICATOR_init(g_y_toggle);
             NIXIE_BL_INDICATOR_enable(0);
             NIXIE_BL_INDICATOR_enable(1);
             NIXIE_BL_INDICATOR_enable(2);
@@ -501,6 +561,9 @@ int32_t on_set(const FSM *pfsm, int32_t input, void *parg) {
 }
 
 int32_t on_nixie_update(const FSM *pfsm, int32_t input, void *parg) {
+	(void)input;
+	(void)parg;
+
     ASSERT(pfsm, "Bad argument.\n");
 
     CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
@@ -512,6 +575,9 @@ int32_t on_nixie_update(const FSM *pfsm, int32_t input, void *parg) {
 }
 
 int32_t on_nixie_bl_update(const FSM *pfsm, int32_t input, void *parg) {
+	(void)input;
+	(void)parg;
+
     ASSERT(pfsm, "Bad argument.\n");
 
     int32_t ret=pfsm->state;
@@ -521,39 +587,51 @@ int32_t on_nixie_bl_update(const FSM *pfsm, int32_t input, void *parg) {
     return ret;
 }
 
-int main(int argc, char* argv[]) {
+int32_t main(int argc, char* argv[]) {
 	(void)argc;
 	(void)argv;
 
 	CONTEXT context;
 	FSM fsm;
 
-	FSM_init(&fsm, STATE_START, (const FSM_STATE_TABLE)state_table, &context);
+	FSM_init(&fsm, STATE_START, (const FSM_STATE_TABLE)g_state_table, &context);
 	FSM_run(&fsm, INPUT_INITIALIZE, NULL);
 
     while(1) {
     	uint32_t ts=TICK_now();
+    	int32_t i;
 
+    	//Timestamp overflow handling.
+    	for(i=0;i<COUNTOF(context.last_ts);i++) {
+    		if(ts<context.last_ts[i])
+    			context.last_ts[i]=ts;
+    	}
+
+    	//NIXIE digit updating.
     	if(ts-context.last_ts[0]>=context.period[0]) {
     		context.last_ts[0]=ts;
     		FSM_run(&fsm, INPUT_NIXIE_UPDATE, NULL);
     	}
 
+    	//NIXIE refreshing.
     	if(ts-context.last_ts[1]>=context.period[1]) {
     		context.last_ts[1]=ts;
     		NIXIE_refresh();
     	}
 
+    	//Backlight updating.
     	if(ts-context.last_ts[2]>=context.period[2]) {
     		context.last_ts[2]=ts;
     		FSM_run(&fsm, INPUT_NIXIE_BL_UPDATE, NULL);
     	}
 
+    	//Digit indicator toggling.
     	if(ts-context.last_ts[3]>=context.period[3]) {
     		context.last_ts[3]=ts;
     		NIXIE_BL_INDICATOR_toggle();
     	}
 
+    	//Remote control command dispatching.
     	if(ts-context.last_ts[4]>=context.period[4]) {
     		context.last_ts[4]=ts;
 
@@ -573,11 +651,19 @@ int main(int argc, char* argv[]) {
 					   data[i]==INPUT_SET) {
 						FSM_run(&fsm, data[i], NULL);
 						break;
-					}
+					} else if(data[i]==INPUT_SAVER)
+						NIXIE_SVR_run();
+					else
+						;
 				}
 			}
     	}
 
+    	//NIXIE saver procedure.
+    	if(ts-context.last_ts[5]>=context.period[5]) {
+    		context.last_ts[5]=ts;
+    		NIXIE_SVR_run();
+    	}
     }
 
 	return 0;

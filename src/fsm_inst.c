@@ -1,6 +1,6 @@
 #include "common.h"
 
-const FSM_STATE_ITEM state_table[13]={
+const FSM_STATE_ITEM g_state_table[13]={
     {
         .id=STATE_START,
         .action_table=(FSM_ACTION_ITEM[]) {

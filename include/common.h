@@ -46,15 +46,18 @@ static inline void __msg(const char *loc, const char *fmt, ...) {
 #endif
 
 #include "fsm.h"
+#include "fsm_inst.h"
+
+#include "calendar.h"
 
 #include "tick.h"
 #include "rtc.h"
+#include "ir.h"
+#include "nixie.h"
 #include "nixie_pwr.h"
 #include "nixie_bl.h"
-#include "nixie.h"
-#include "ir.h"
-#include "calendar.h"
+#include "nixie_svr.h"
+
 #include "uart.h"
-#include "fsm_inst.h"
 
 #endif
