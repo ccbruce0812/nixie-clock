@@ -5,8 +5,10 @@
 #define NIXIE_REFRESHING_PERIOD				(1)
 #define NIXIE_BL_UPDATING_PERIOD			(50)
 #define NIXIE_BL_INDICATOR_TOGGLING_PERIOD	(500)
-#define IR_CHECKING_PERIOD					(1)
 #define NIXIE_SVR_RUNNING_PERIOD			(60*60*1000)
+#define IR_CHECKING_PERIOD					(1)
+#define IR_INTERVAL							(500)
+#define BT_RESTORING_PERIOD					(50)
 
 typedef struct {
 	/*
@@ -14,11 +16,13 @@ typedef struct {
 	 * 1: NIXIE_REFRESHING_PERIOD
 	 * 2: NIXIE_BL_UPDATING_PERIOD
 	 * 3: NIXIE_BL_INDICATOR_TOGGLING_PERIOD
-	 * 4: IR_CHECKING_PERIOD
-	 * 5: NIXIE_SVR_RUNNING PERIOD
+	 * 4: NIXIE_SVR_RUNNING PERIOD
+	 * 5: IR_CHECKING_PERIOD
+	 * 6: IR_INTERVAL
+	 * 7: BT_RESTORING_PERIOD
 	 */
-	uint32_t last_ts[6];
-	uint32_t period[6];
+	uint32_t last_ts[8];
+	uint32_t period[8];
 
 	uint16_t new_y;
 	uint8_t new_m;
@@ -158,6 +162,8 @@ int32_t on_initialize(const FSM *pfsm, int32_t input, void *parg) {
 
 	IR_init();
 
+	BT_init();
+
 	NIXIE_PWR_on();
 	NIXIE_on();
 
@@ -170,8 +176,10 @@ int32_t on_initialize(const FSM *pfsm, int32_t input, void *parg) {
 	pcontext->period[1]=NIXIE_REFRESHING_PERIOD;
 	pcontext->period[2]=NIXIE_BL_UPDATING_PERIOD;
 	pcontext->period[3]=NIXIE_BL_INDICATOR_TOGGLING_PERIOD;
-	pcontext->period[4]=IR_CHECKING_PERIOD;
-	pcontext->period[5]=NIXIE_SVR_RUNNING_PERIOD;
+	pcontext->period[4]=NIXIE_SVR_RUNNING_PERIOD;
+	pcontext->period[5]=IR_CHECKING_PERIOD;
+	pcontext->period[6]=IR_INTERVAL;
+	pcontext->period[7]=BT_RESTORING_PERIOD;
 
 	NIXIE_BL_PAT0_init();
 
@@ -192,8 +200,35 @@ int32_t on_mute(const FSM *pfsm, int32_t input, void *parg) {
         case STATE_HHMM_MODE:
         case STATE_SS_MODE:
         case STATE_MD_MODE:
+        case STATE_Y_MODE: {
+        	int32_t state=BT_mute_get();
+
+        	BT_mute_set(!state);
+            break;
+        }
+
+        default:
+            ASSERT(0, "Bad flow. Check your code.\n");
+    }
+
+    return ret;
+}
+
+int32_t on_pause(const FSM *pfsm, int32_t input, void *parg) {
+	(void)input;
+	(void)parg;
+
+    ASSERT(pfsm, "Bad argument.\n");
+
+    CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
+    int32_t ret=pfsm->state;
+
+    switch(pfsm->state) {
+        case STATE_HHMM_MODE:
+        case STATE_SS_MODE:
+        case STATE_MD_MODE:
         case STATE_Y_MODE:
-            //BT stuffs.
+			BT_pause();
             break;
 
         default:
@@ -217,7 +252,7 @@ int32_t on_next(const FSM *pfsm, int32_t input, void *parg) {
         case STATE_SS_MODE:
         case STATE_MD_MODE:
         case STATE_Y_MODE:
-            //BT stuffs.
+        	BT_next();
             break;
 
         default:
@@ -241,7 +276,7 @@ int32_t on_previous(const FSM *pfsm, int32_t input, void *parg) {
         case STATE_SS_MODE:
         case STATE_MD_MODE:
         case STATE_Y_MODE:
-            //BT stuffs.
+        	BT_previous();
             break;
 
         default:
@@ -265,7 +300,7 @@ int32_t on_increase(const FSM *pfsm, int32_t input, void *parg) {
         case STATE_SS_MODE:
         case STATE_MD_MODE:
         case STATE_Y_MODE:
-            //BT stuffs.
+            BT_increase();
             break;
 
         case STATE_SET_Y_MODE:
@@ -339,7 +374,7 @@ int32_t on_decrease(const FSM *pfsm, int32_t input, void *parg) {
         case STATE_SS_MODE:
         case STATE_MD_MODE:
         case STATE_Y_MODE:
-            //BT stuffs.
+            BT_decrease();
             break;
 
         case STATE_SET_Y_MODE:
@@ -631,11 +666,17 @@ int32_t main(int argc, char* argv[]) {
     		NIXIE_BL_INDICATOR_toggle();
     	}
 
-    	//Remote control command dispatching.
+    	//NIXIE saver procedure.
     	if(ts-context.last_ts[4]>=context.period[4]) {
     		context.last_ts[4]=ts;
+    		NIXIE_SVR_run();
+    	}
 
-        	uint8_t data[256], count=0;
+    	//Remote control command dispatching.
+    	if(ts-context.last_ts[5]>=context.period[5]) {
+    		context.last_ts[5]=ts;
+
+        	uint8_t data[8], count=0;
 
 			count=IR_pop(data, 256);
 			if(count) {
@@ -643,26 +684,34 @@ int32_t main(int argc, char* argv[]) {
 
 				for(i=0;i<count;i++) {
 					if(data[i]==INPUT_MUTE ||
+					   data[i]==INPUT_PAUSE ||
 					   data[i]==INPUT_NEXT ||
 					   data[i]==INPUT_PREVIOUS ||
 					   data[i]==INPUT_INCREASE ||
 					   data[i]==INPUT_DECREASE ||
 					   data[i]==INPUT_DISPLAY ||
 					   data[i]==INPUT_SET) {
-						FSM_run(&fsm, data[i], NULL);
+						if(ts-context.last_ts[6]>=context.period[6]) {
+							context.last_ts[6]=ts;
+							FSM_run(&fsm, data[i], NULL);
+						}
 						break;
-					} else if(data[i]==INPUT_SAVER)
-						NIXIE_SVR_run();
-					else
+					} else if(data[i]==INPUT_SAVER) {
+						if(ts-context.last_ts[6]>=context.period[6]) {
+							context.last_ts[6]=ts;
+							NIXIE_SVR_run();
+						}
+						break;
+					} else
 						;
 				}
 			}
     	}
 
-    	//NIXIE saver procedure.
-    	if(ts-context.last_ts[5]>=context.period[5]) {
-    		context.last_ts[5]=ts;
-    		NIXIE_SVR_run();
+    	//BT restoring
+    	if(ts-context.last_ts[7]>=context.period[7]) {
+    		context.last_ts[7]=ts;
+    		BT_restore();
     	}
     }
 

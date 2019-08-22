@@ -57,6 +57,7 @@ static inline void __msg(const char *loc, const char *fmt, ...) {
 #include "nixie_pwr.h"
 #include "nixie_bl.h"
 #include "nixie_svr.h"
+#include "bt.h"
 
 #include "uart.h"
 

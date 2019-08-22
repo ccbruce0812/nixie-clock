@@ -19,6 +19,7 @@ enum {
 	INPUT_NIXIE_UPDATE=		0x0101,
 	INPUT_NIXIE_BL_UPDATE=	0x0102,
 	INPUT_MUTE=				0x09,
+	INPUT_PAUSE=			0x43,
 	INPUT_NEXT=				0x40,
 	INPUT_PREVIOUS=			0x44,
 	INPUT_INCREASE=			0x15,
@@ -32,6 +33,7 @@ extern const FSM_STATE_ITEM g_state_table[13];
 
 int32_t on_initialize(const FSM *pfsm, int32_t input, void *parg);
 int32_t on_mute(const FSM *pfsm, int32_t input, void *parg);
+int32_t on_pause(const FSM *pfsm, int32_t input, void *parg);
 int32_t on_next(const FSM *pfsm, int32_t input, void *parg);
 int32_t on_previous(const FSM *pfsm, int32_t input, void *parg);
 int32_t on_increase(const FSM *pfsm, int32_t input, void *parg);

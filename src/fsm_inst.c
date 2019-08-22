@@ -11,6 +11,7 @@ const FSM_STATE_ITEM g_state_table[13]={
 		.id=STATE_HHMM_MODE,
 		.action_table=(FSM_ACTION_ITEM[]) {
 			{.input=INPUT_MUTE,				.action=on_mute},
+			{.input=INPUT_PAUSE,			.action=on_pause},
 			{.input=INPUT_NEXT,				.action=on_next},
 			{.input=INPUT_PREVIOUS,			.action=on_previous},
 			{.input=INPUT_INCREASE,			.action=on_increase},
@@ -25,6 +26,7 @@ const FSM_STATE_ITEM g_state_table[13]={
 		.id=STATE_SS_MODE,
 		.action_table=(FSM_ACTION_ITEM[]) {
 			{.input=INPUT_MUTE,				.action=on_mute},
+			{.input=INPUT_PAUSE,			.action=on_pause},
 			{.input=INPUT_NEXT,				.action=on_next},
 			{.input=INPUT_PREVIOUS,			.action=on_previous},
 			{.input=INPUT_INCREASE,			.action=on_increase},
@@ -39,6 +41,7 @@ const FSM_STATE_ITEM g_state_table[13]={
 		.id=STATE_MD_MODE,
 		.action_table=(FSM_ACTION_ITEM[]) {
 			{.input=INPUT_MUTE,				.action=on_mute},
+			{.input=INPUT_PAUSE,			.action=on_pause},
 			{.input=INPUT_NEXT,				.action=on_next},
 			{.input=INPUT_PREVIOUS,			.action=on_previous},
 			{.input=INPUT_INCREASE,			.action=on_increase},
@@ -53,6 +56,7 @@ const FSM_STATE_ITEM g_state_table[13]={
 		.id=STATE_Y_MODE,
 		.action_table=(FSM_ACTION_ITEM[]) {
 			{.input=INPUT_MUTE,				.action=on_mute},
+			{.input=INPUT_PAUSE,			.action=on_pause},
 			{.input=INPUT_NEXT,				.action=on_next},
 			{.input=INPUT_PREVIOUS,			.action=on_previous},
 			{.input=INPUT_INCREASE,			.action=on_increase},
