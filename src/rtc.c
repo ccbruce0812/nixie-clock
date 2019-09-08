@@ -8,7 +8,7 @@ void RTC_IRQHandler(void) {
 	}
 }
 
-ALWAYS_INLINE nvic_init(void) {
+ALWAYS_INLINE void nvic_init(void) {
 	NVIC_InitTypeDef NVIC_init;
 
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
@@ -50,7 +50,7 @@ ALWAYS_INLINE void rtc_init(void) {
 	RTC_WaitForLastTask();
 }
 
-ALWAYS_INLINE rtc_init_partial(void) {
+ALWAYS_INLINE void rtc_init_partial(void) {
 	RCC_APB1PeriphClockCmd(
 			RCC_APB1Periph_PWR |
 			RCC_APB1Periph_BKP, ENABLE);

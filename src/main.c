@@ -118,22 +118,22 @@ static void update(const CONTEXT *pcontext, int32_t mode) {
 hhmm:
 	NIXIE_update(0, mm%10);
 	NIXIE_update(1, mm/10);
-	NIXIE_update(2, hh%10);
-	NIXIE_update(3, hh/10);
+	NIXIE_update(2, (hh%10)|(ss%2?NIXIE_DOT:0));
+	NIXIE_update(3, (hh/10)|(ss%2?NIXIE_DOT:0));
 	return;
 
 ssms:
 	NIXIE_update(0, ms%10);
 	NIXIE_update(1, ms/10);
-	NIXIE_update(2, ss%10);
-	NIXIE_update(3, ss/10);
+	NIXIE_update(2, (ss%10)|(ss%2?NIXIE_DOT:0));
+	NIXIE_update(3, (ss/10)|(ss%2?NIXIE_DOT:0));
 	return;
 
 md:
 	NIXIE_update(0, d%10);
 	NIXIE_update(1, d/10);
-	NIXIE_update(2, m%10);
-	NIXIE_update(3, m/10);
+	NIXIE_update(2, (m%10)|NIXIE_DOT);
+	NIXIE_update(3, (m/10)|NIXIE_DOT);
 	return;
 
 y:
@@ -183,6 +183,11 @@ int32_t on_initialize(const FSM *pfsm, int32_t input, void *parg) {
 
 	NIXIE_BL_PAT0_init();
 
+    NIXIE_BL_INDICATOR_disable(0);
+    NIXIE_BL_INDICATOR_disable(1);
+    NIXIE_BL_INDICATOR_disable(2);
+    NIXIE_BL_INDICATOR_disable(3);
+
 	update(pcontext, STATE_HHMM_MODE);
 	return STATE_HHMM_MODE;
 }
@@ -193,7 +198,6 @@ int32_t on_mute(const FSM *pfsm, int32_t input, void *parg) {
 
     ASSERT(pfsm, "Bad argument.\n");
 
-    CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
     int32_t ret=pfsm->state;
 
     switch(pfsm->state) {
@@ -220,7 +224,6 @@ int32_t on_pause(const FSM *pfsm, int32_t input, void *parg) {
 
     ASSERT(pfsm, "Bad argument.\n");
 
-    CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
     int32_t ret=pfsm->state;
 
     switch(pfsm->state) {
@@ -244,7 +247,6 @@ int32_t on_next(const FSM *pfsm, int32_t input, void *parg) {
 
 	ASSERT(pfsm, "Bad argument.\n");
 
-    CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
     int32_t ret=pfsm->state;
 
     switch(pfsm->state) {
@@ -268,7 +270,6 @@ int32_t on_previous(const FSM *pfsm, int32_t input, void *parg) {
 
     ASSERT(pfsm, "Bad argument.\n");
 
-    CONTEXT *pcontext=(CONTEXT *)pfsm->puser_data;
     int32_t ret=pfsm->state;
 
     switch(pfsm->state) {

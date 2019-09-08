@@ -50,8 +50,6 @@ static BT_DATA g_data[]={
 };
 
 void BT_init(void) {
-	int32_t i;
-
 	RCC_APB2PeriphClockCmd(
 		RCC_APB2Periph_GPIOA|
 		RCC_APB2Periph_GPIOB,

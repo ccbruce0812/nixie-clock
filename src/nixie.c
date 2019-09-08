@@ -1,7 +1,9 @@
 #include "common.h"
 
+const static uint8_t dot_map[NIXIE_DIGIT_COUNT]={0, 1, 2, 3};
+
 static uint8_t g_digit;
-static uint8_t g_numbers[NIXIE_COUNT];
+static uint8_t g_number[NIXIE_DIGIT_COUNT];
 
 void NIXIE_init(void) {
 	RCC_APB2PeriphClockCmd(
@@ -46,16 +48,13 @@ void NIXIE_reset(void) {
     GPIO_SetBits(GPIOA, GPIO_Pin_2);
 
     g_digit=0;
-    memset(g_numbers, 0, sizeof(g_numbers));
+    memset(g_number, 0, sizeof(g_number));
 }
 
 void NIXIE_update(uint8_t digit, uint8_t number) {
-	if(digit>NIXIE_DARK) {
-		MSG("Bad argument.\n");
-		return;
-	}
+	ASSERT(digit<NIXIE_DIGIT_COUNT && (number&0x0f)<=NIXIE_DARK, "Bad argument.\n");
 
-	g_numbers[digit]=number;
+	g_number[digit]=number;
 }
 
 ALWAYS_INLINE void blanking(void) {
@@ -77,21 +76,22 @@ ALWAYS_INLINE void blanking(void) {
 	TICK_usleep(100);
 }
 
+
 void NIXIE_refresh(void) {
 	uint16_t data=0;
 	uint8_t *pdata=(uint8_t *)&data;
-	int16_t shift=NIXIE_COUNT, i;
+	int16_t shift=NIXIE_DIGIT_COUNT, i;
 
-	if(g_numbers[g_digit]==NIXIE_DOT) {
-		data|=(0x1<<g_digit);
-		data|=(0x1<<shift);
-	} else if(g_numbers[g_digit]==NIXIE_DARK)
+	if(g_number[g_digit]&0x0f==NIXIE_DARK)
 		data|=(0x1<<g_digit);
 	else {
-		shift+=(g_numbers[g_digit]+1);
+		shift+=((g_number[g_digit]&0x0f)+1);
 		data|=(0x1<<g_digit);
 		data|=(0x1<<shift);
 	}
+
+	if(g_number[g_digit]&0xf0)
+		data|=(0x1<<NIXIE_DIGIT_COUNT);
 
 	blanking();
 
@@ -108,5 +108,5 @@ void NIXIE_refresh(void) {
 
 	TICK_usleep(40);
 
-	g_digit=(g_digit+1)%NIXIE_COUNT;
+	g_digit=(g_digit+1)%NIXIE_DIGIT_COUNT;
 }

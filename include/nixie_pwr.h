@@ -1,7 +1,7 @@
 #ifndef _NIXIE_PWR_H_
 #define _NIXIE_PWR_H_
 
-inline static __attribute__((always_inline)) void NIXIE_PWR_init(void) {
+ALWAYS_INLINE void NIXIE_PWR_init(void) {
 	RCC_APB2PeriphClockCmd(
 		RCC_APB2Periph_GPIOB, ENABLE);
 
@@ -13,11 +13,11 @@ inline static __attribute__((always_inline)) void NIXIE_PWR_init(void) {
 	GPIO_Init(GPIOB, &GPIO_init);
 }
 
-inline static __attribute__((always_inline))  void NIXIE_PWR_on(void) {
+ALWAYS_INLINE  void NIXIE_PWR_on(void) {
 	GPIO_SetBits(GPIOB, GPIO_Pin_11);
 }
 
-inline static __attribute__((always_inline))  void NIXIE_PWR_off(void) {
+ALWAYS_INLINE  void NIXIE_PWR_off(void) {
 	GPIO_ResetBits(GPIOB, GPIO_Pin_11);
 }
 

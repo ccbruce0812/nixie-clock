@@ -7,7 +7,7 @@
 #define UART_STOP_BITS		(USART_StopBits_1)
 #define UART_PARITY			(USART_Parity_No)
 
-static inline __attribute__((always_inline)) void UART_init(void) {
+ALWAYS_INLINE void UART_init(void) {
 	NVIC_InitTypeDef NVIC_init_data;
 	GPIO_InitTypeDef GPIO_init_data;
 	USART_InitTypeDef USART_init_data;

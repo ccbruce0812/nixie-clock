@@ -5,7 +5,7 @@ void TICK_init(void);
 void TICK_msleep(uint32_t msec);
 uint32_t TICK_now(void);
 
-static inline __attribute__((always_inline)) void TICK_usleep(uint32_t usecs) {
+ALWAYS_INLINE void TICK_usleep(uint32_t usecs) {
 	uint32_t base=SystemCoreClock/1000000;
 	uint32_t i;
 

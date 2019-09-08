@@ -27,7 +27,7 @@ void NIXIE_SVR_run(void) {
 
             for(j=0;j<4;j++) {
                 if(g_pattern[i][j])
-                    NIXIE_update(j, k);
+                    NIXIE_update(j, k|NIXIE_DOT);
             }
             k=(k+1)%10;
         }
